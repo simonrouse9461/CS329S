@@ -1,0 +1,6 @@
+torch
+newspaper3k
+transformers
+pandas
+plotly
+stqdm
