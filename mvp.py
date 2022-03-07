@@ -13,6 +13,9 @@ from transformers import pipeline
 from stqdm import stqdm as tqdm
 tqdm.pandas()
 
+import nltk
+nltk.download('punkt')
+
 SENTIMENT_MODEL_NAME = "oandreae/financial_sentiment_model"
 COINAPI_KEY = "7C343D69-E559-4848-A8F6-E60F3631B67E"
 COINAPI_ENDPOINT = "https://rest.coinapi.io/v1"
