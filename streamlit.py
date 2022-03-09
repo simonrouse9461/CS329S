@@ -142,7 +142,11 @@ news_data = cryptonews.fetch(widgets["ticker"],
                              start=widgets["sentiment_start_date"],
                              source=widgets["news_source"]) if len(widgets["news_source"]) > 0 else None
 
-chart_placeholder = st.empty()
+metrics = st.columns(4)
+
+metrics[0].metric(f"Forecasted Gain", "12 USD", "10%")
+
+chart_placeholder = st.expander("Price Chart", True).empty()
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
 
