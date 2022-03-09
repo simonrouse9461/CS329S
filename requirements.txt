@@ -1,6 +1,5 @@
-torch
-newspaper3k
-transformers
+numpy
+convertdate
 pmdarima
 prophet
 pandas
