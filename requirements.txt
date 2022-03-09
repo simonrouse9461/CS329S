@@ -1,6 +1,10 @@
 torch
 newspaper3k
 transformers
+pmdarima
+prophet
 pandas
 plotly
 stqdm
+google-cloud-storage
+google-cloud-dataproc
