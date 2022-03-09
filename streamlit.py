@@ -113,21 +113,23 @@ predictor = {
 
 st.set_page_config(layout="wide")
 
-st.title("Crypto Market Sentiment Analysis")
+st.title("Crypto Market Analysis")
 
 ### Side Bar ###
 widgets = {}
 
 widgets["ticker"] = st.sidebar.selectbox("Please select a cryptocurrency:",
                                          CRYPTO_LIST, CRYPTO_LIST.index("SOL"))
-widgets["start_date"] = st.sidebar.date_input("Please select a start date:", 
-                                              pd.Timestamp.now() - pd.DateOffset(days=30))
+widgets["price_start_date"] = st.sidebar.date_input("Please select a start date:", 
+                                                    pd.Timestamp.now() - pd.DateOffset(days=90))
+widgets["sentiment_start_date"] = st.sidebar.date_input("Please select a start date:", 
+                                                        pd.Timestamp.now() - pd.DateOffset(days=30))
 widgets["bollinger_window"] = st.sidebar.number_input("Please select bollinger band window size",
-                                                      0, 30, 7)
+                                                      0, 30, 10)
 widgets["predictor"] = st.sidebar.selectbox("Please select a predictor algorithm:",
                                             list(predictor.keys()), 0)
 widgets["pred_period"] = st.sidebar.number_input("Please select a prediction period:",
-                                                 0, 30, 7)
+                                                 0, 30, 10)
 news_selectbox_container = st.sidebar.container()
 
 widgets["select_all"]  = st.sidebar.checkbox("Select all", False)
@@ -137,14 +139,14 @@ widgets["news_source"] = news_selectbox_container.multiselect("Please select new
 ################
 
 news_data = cryptonews.fetch(widgets["ticker"],
-                             start=widgets["start_date"],
+                             start=widgets["sentiment_start_date"],
                              source=widgets["news_source"]) if len(widgets["news_source"]) > 0 else None
 
 chart_placeholder = st.empty()
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-price = coinapi.fetch(widgets["ticker"], start=widgets["start_date"])
+price = coinapi.fetch(widgets["ticker"], start=widgets["price_start_date"])
 
 if widgets["bollinger_window"] > 0 and widgets["bollinger_window"] < len(price):
     price["bollinger_top"], price["bollinger_bottom"] = get_bollinger_bands(price["rate_close"], window=widgets["bollinger_window"])
@@ -265,6 +267,6 @@ else:
         plot2.update_traces(yaxis="y2")
         fig.add_traces(plot2.data)
         fig.update_yaxes(title_text="Sentiment Score", secondary_y=True)
-        fig.update_layout(legend_title_text='Sentiments')
+        # fig.update_layout(legend_title_text='Sentiments')
         chart_placeholder.plotly_chart(fig, use_container_width=True)
     
