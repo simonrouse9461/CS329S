@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 from stqdm import stqdm as tqdm
 tqdm.pandas()
 import nltk
@@ -126,7 +127,7 @@ widgets["bollinger_window"] = st.sidebar.number_input("Please select bollinger b
 widgets["predictor"] = st.sidebar.selectbox("Please select a predictor algorithm:",
                                             list(predictor.keys()), 0)
 widgets["pred_period"] = st.sidebar.number_input("Please select a prediction period:",
-                                                 0, 30, 5)
+                                                 0, 30, 7)
 news_selectbox_container = st.sidebar.container()
 
 widgets["select_all"]  = st.sidebar.checkbox("Select all", False)
@@ -145,27 +146,42 @@ fig = make_subplots(specs=[[{"secondary_y": True}]])
 
 price = coinapi.fetch(widgets["ticker"], start=widgets["start_date"])
 
-fig.add_traces(px.line(price, 
-                       x="time_period_start", 
-                       y="rate_close", 
-                       color_discrete_sequence=[px.colors.qualitative.Plotly[3]]).data)
-
 if widgets["bollinger_window"] > 0 and widgets["bollinger_window"] < len(price):
     price["bollinger_top"], price["bollinger_bottom"] = get_bollinger_bands(price["rate_close"], window=widgets["bollinger_window"])
-    train_data = price[["time_period_start", "rate_close"]].rename({"time_period_start": "date", "rate_close": "price"}, axis=1)
-    prediction = predictor[widgets["predictor"]].fit(train_data).predict(widgets["pred_period"])
-    fig.add_traces(px.line(price, 
-                           x="time_period_start", 
-                           y="bollinger_top", 
-                           color_discrete_sequence=[px.colors.qualitative.Plotly[2]]).data)
-    fig.add_traces(px.line(price, 
-                           x="time_period_start", 
-                           y="bollinger_bottom", 
-                           color_discrete_sequence=[px.colors.qualitative.Plotly[1]]).data)
-    fig.add_traces(px.line(prediction, 
-                           x="date", 
-                           y="price", 
-                           color_discrete_sequence=[px.colors.qualitative.Plotly[0]]).data)
+    fig.add_trace(go.Scatter(
+        name="Bollinger Bottom",
+        x=price["time_period_start"], 
+        y=price["bollinger_bottom"],
+        fill="none",
+        # mode='none',
+        line_color=px.colors.qualitative.Safe[0],
+    ))
+    fig.add_trace(go.Scatter(
+        name="Bollinger Top",
+        x=price["time_period_start"], 
+        y=price["bollinger_top"],
+        fill='tonexty', # fill area between trace0 and trace1
+        # mode='none', 
+        line_color=px.colors.qualitative.Safe[0],
+    ))
+fig.add_traces(go.Scatter(
+    name="Price",
+    x=price["time_period_start"], 
+    y=price["rate_close"],
+    fill='none', # fill area between trace0 and trace1
+    # mode='none', 
+    line_color="black",
+))
+train_data = price[["time_period_start", "rate_close"]].rename({"time_period_start": "date", "rate_close": "price"}, axis=1)
+prediction = predictor[widgets["predictor"]].fit(train_data).predict(widgets["pred_period"])
+fig.add_trace(go.Scatter(
+    name="Forecast",
+    x=prediction["date"], 
+    y=prediction["price"],
+    fill='none', # fill area between trace0 and trace1
+    # mode='none', 
+    line_color=px.colors.qualitative.Plotly[1],
+))
 
 fig.update_yaxes(title_text="Exchange Rate (USD)", secondary_y=False)
 chart_placeholder.plotly_chart(fig, use_container_width=True)
