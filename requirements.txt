@@ -5,5 +5,7 @@ prophet
 pandas
 plotly
 stqdm
+matplotlib
+wordcloud
 google-cloud-storage
 google-cloud-dataproc

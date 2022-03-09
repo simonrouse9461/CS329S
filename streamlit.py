@@ -5,6 +5,8 @@ import pickle
 import numpy as np
 import pandas as pd
 import streamlit as st
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -209,7 +211,8 @@ chart_placeholder.plotly_chart(fig, use_container_width=True)
 
 info_placeholder = st.empty()
 
-metrics[3].metric(f"Average Sentiment Score", f"--")
+sentiment_rating_placeholder = metrics[3].empty()
+sentiment_rating_placeholder.metric(f"Sentiment Rating", f"--")
     
 if news_data is None:
     info_placeholder.warning(f"No records found")
@@ -289,4 +292,20 @@ else:
         fig.update_yaxes(title_text="Sentiment Score", secondary_y=True)
         # fig.update_layout(legend_title_text='Sentiments')
         chart_placeholder.plotly_chart(fig, use_container_width=True)
+        
+        summary["expsum"] = summary[["negative", "neutral", "positive"]].apply(np.exp).sum(axis=1)
+        summary["exppos"] = summary["positive"].apply(np.exp)
+        summary["weight"] = summary[["negative", "neutral", "positive"]].sum(axis=1)
+        summary["softmax"] = summary["exppos"] / (summary["expsum"] + 1e-5)
+        sentiment_rating = int((summary["softmax"] * summary["weight"]).sum() / summary["weight"].sum() * 100)
+        sentiment_rating_placeholder.metric(f"Sentiment Rating", f"{sentiment_rating}")
+        
+        text = " ".join(sum(merged_data["keywords"].dropna(), []))
+        wordcloud = WordCloud(background_color='white', max_font_size=250, width=1600, height=800).generate(text)
+
+        fig = plt.figure(figsize=[30, 15])
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        plt.show()
+        st.pyplot(fig)
     
