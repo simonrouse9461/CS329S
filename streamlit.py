@@ -145,7 +145,7 @@ news_data = cryptonews.fetch(widgets["ticker"],
                              start=widgets["sentiment_start_date"],
                              source=widgets["news_source"]) if len(widgets["news_source"]) > 0 else None
 
-metrics = st.columns(4)
+metrics = st.expander("Dashboard", True).columns(4)
 
 chart_placeholder = st.expander("Price Chart", True).empty()
 
