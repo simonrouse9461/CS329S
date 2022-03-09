@@ -120,7 +120,7 @@ widgets = {}
 
 widgets["ticker"] = st.sidebar.selectbox("Please select a cryptocurrency:",
                                          CRYPTO_LIST, CRYPTO_LIST.index("SOL"))
-widgets["price_start_date"] = st.sidebar.date_input("Please select a start date for price prediction:", 
+widgets["price_start_date"] = st.sidebar.date_input("Please select a start date for price forecasting:", 
                                                     pd.Timestamp.now() - pd.DateOffset(days=90))
 widgets["sentiment_start_date"] = st.sidebar.date_input("Please select a start date for sentiment analysis:", 
                                                         pd.Timestamp.now() - pd.DateOffset(days=30))
