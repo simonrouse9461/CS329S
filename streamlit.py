@@ -23,6 +23,9 @@ COINAPI_KEY = [
     "7C343D69-E559-4848-A8F6-E60F3631B67E",
     "9C2AF8D6-C0D2-4A28-A344-3271CF1FDBFC",
     "E092FAB1-7B5E-4F27-AC48-80E463458A51",
+    "285DC5D4-28B2-4BB8-9A69-C992405FCFD1",
+    "56255CAC-9D04-4FD8-AD07-3BE2E0E5B42D",
+    "B3FC7398-E8EC-4230-8081-4B3DF862EEE6",
 ]
 CRYPTONEWS_API_TOKEN = "oonymosrym98pjbpimxrmzv0yqoiotvlqcmprqzb"
 GCP_CREDENTIAL = {
@@ -144,13 +147,16 @@ news_data = cryptonews.fetch(widgets["ticker"],
 
 metrics = st.columns(4)
 
-metrics[0].metric(f"Forecasted Gain", "12 USD", "10%")
-
 chart_placeholder = st.expander("Price Chart", True).empty()
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
 
 price = coinapi.fetch(widgets["ticker"], start=widgets["price_start_date"])
+
+close_price = price["rate_close"].iloc[-1]
+open_price = price["rate_open"].iloc[-1]
+gain = (close_price - open_price) / open_price
+metrics[0].metric(f"{widgets['ticker']} Price", f"{close_price:.2f} USD", f"{gain:.2%}")
 
 if widgets["bollinger_window"] > 0 and widgets["bollinger_window"] < len(price):
     price["bollinger_top"], price["bollinger_bottom"] = get_bollinger_bands(price["rate_close"], window=widgets["bollinger_window"])
@@ -170,6 +176,11 @@ if widgets["bollinger_window"] > 0 and widgets["bollinger_window"] < len(price):
         # mode='none', 
         line_color=px.colors.qualitative.Safe[0],
     ))
+    bt, bb = price["bollinger_top"].iloc[-1], price["bollinger_bottom"].iloc[-1]
+    bbw, bbc = (bt - bb) / 2, (bt + bb) / 2
+    bbp = int((close_price - bbc) / bbw * 100)
+    metrics[2].metric(f"Bollinger Band Position (BBP)", f"{bbp}")
+    
 fig.add_traces(go.Scatter(
     name="Price",
     x=price["time_period_start"], 
@@ -189,14 +200,19 @@ fig.add_trace(go.Scatter(
     line_color=px.colors.qualitative.Plotly[1],
 ))
 
+forecasted_price = prediction["price"].iloc[-1]
+forecasted_gain = (forecasted_price - close_price) / close_price
+metrics[1].metric(f"Forecasted Gain ({widgets['pred_period']} days)", f"{forecasted_price - close_price:.2f} USD", f"{forecasted_gain:.2%}")
+
 fig.update_yaxes(title_text="Exchange Rate (USD)", secondary_y=False)
 chart_placeholder.plotly_chart(fig, use_container_width=True)
 
 info_placeholder = st.empty()
 
+metrics[3].metric(f"Average Sentiment Score", f"--")
+    
 if news_data is None:
     info_placeholder.warning(f"No records found")
-    
 else:
     # st.header("Raw Data")
     
